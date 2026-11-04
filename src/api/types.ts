@@ -116,7 +116,7 @@ export interface ProjectRow {
   nep_page: number | null;
   hgab2_page: number | null;
   hgab3_page: number | null;
-  pdf_url: Partial<Record<Version, string>>;
+  pdf_url: Partial<Record<Version, string | null>>;
   flags: string[];
   lon: number | null;
   lat: number | null;

@@ -5,5 +5,7 @@ dist
 .netlify
 .env
 .env.local
+.env.*
+!.env.example
 *.log
 .DS_Store

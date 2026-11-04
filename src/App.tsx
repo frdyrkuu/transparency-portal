@@ -1,4 +1,6 @@
+import { useRef } from 'react';
 import { Link, Navigate, Route, Routes } from 'react-router-dom';
+import ChatPanel, { type ChatPanelHandle } from './components/ChatPanel';
 import { Footer, Masthead } from './components/Chrome';
 import ScrollToTop from './components/ScrollToTop';
 import { configProblems } from './config';
@@ -10,11 +12,17 @@ import Enacted from './pages/Enacted';
 
 export default function App() {
   const { config } = usePortal();
+  const chat = useRef<ChatPanelHandle>(null);
   const problems = import.meta.env.DEV ? configProblems(config) : [];
   return (
     <>
       <ScrollToTop />
       <Masthead />
+      <div className="page chat-entry">
+        <button type="button" className="button button-primary chat-open" aria-haspopup="dialog" onClick={() => chat.current?.open()}>
+          Magtanong tungkol sa budget
+        </button>
+      </div>
       {problems.length > 0 && (
         <div className="page config-warning" role="alert">
           <strong>portal.config.ts needs attention</strong> (shown in development only):
@@ -27,7 +35,7 @@ export default function App() {
         <Route path="/districts" element={<Navigate to="/#offices" replace />} />
         <Route path="/gaa" element={<Enacted />} />
         <Route path="/about" element={<About />} />
-        <Route path="/projects/:dataset/:id" element={<Project />} />
+        <Route path="/projects/:dataset/:id" element={<Project onExplain={(key) => chat.current?.open(key)} />} />
         <Route
           path="*"
           element={
@@ -38,6 +46,7 @@ export default function App() {
         />
       </Routes>
       <Footer />
+      <ChatPanel ref={chat} />
     </>
   );
 }

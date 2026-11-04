@@ -96,9 +96,13 @@ export function createClient(base: string): Client {
     const first = await json<GaaEnvelope<GaaProgram[]>>(path, { q, limit: GAA_PAGE_SIZE });
     const rows = [...first.data];
     let cursor = first.next_cursor;
+    const cursors = new Set<string>();
     // The cursor chains pages, so they are fetched one after another.
     while (cursor && rows.length < MAX_GAA_PROGRAMS) {
+      if (cursors.has(cursor)) throw new ApiError(502, href(path, { q }), 'GAA pagination repeated a cursor.');
+      cursors.add(cursor);
       const page = await json<GaaEnvelope<GaaProgram[]>>(path, { q, limit: GAA_PAGE_SIZE, cursor });
+      if (!page.data.length && page.next_cursor) throw new ApiError(502, href(path, { q }), 'GAA pagination made no progress.');
       rows.push(...page.data);
       cursor = page.next_cursor;
     }

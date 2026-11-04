@@ -17,15 +17,16 @@ const FALLBACK_VERSION_LABELS: Record<Version, string> = {
   api: 'DPWH transparency website listing',
 };
 
-export default function Project() {
+export default function Project({ onExplain }: { onExplain: (key: string) => void }) {
   const { dataset = '', id = '' } = useParams();
-  const { client } = usePortal();
+  const { client, scope, config } = usePortal();
   const valid = (DATASET_KEYS as readonly string[]).includes(dataset);
+  const inScope = scope.status === 'ready' && scope.value.projects.some((p) => p.key === projectKey(dataset, id));
   const [state, setState] = useState<{ key: string; value: Async<Envelope<ProjectDetail>> } | null>(null);
   const key = `${dataset}/${id}`;
 
   useEffect(() => {
-    if (!valid) return;
+    if (!valid || !inScope) return;
     let live = true;
     client.project(dataset as DatasetKey, id).then(
       (value) => live && setState({ key, value: { status: 'ready', value } }),
@@ -34,7 +35,7 @@ export default function Project() {
     return () => {
       live = false;
     };
-  }, [client, dataset, id, key, valid]);
+  }, [client, dataset, id, key, valid, inScope]);
 
   if (!valid) {
     return (
@@ -47,14 +48,20 @@ export default function Project() {
   return (
     <main className="page main">
       <p className="crumbs"><Link to="/">← Every project</Link></p>
-      <Await state={current} what="the project">
-        {(env) => <ProjectView env={env} />}
+      <Await state={scope} what="the portal’s projects">
+        {() => inScope ? (
+          <Await state={current} what="the project">
+            {(env) => <ProjectView env={env} onExplain={onExplain} />}
+          </Await>
+        ) : (
+          <p className="state">This project is outside the scope of {shortNameOf(config)}. <Link to="/">Back to every project</Link></p>
+        )}
       </Await>
     </main>
   );
 }
 
-function ProjectView({ env }: { env: Envelope<ProjectDetail> }) {
+function ProjectView({ env, onExplain }: { env: Envelope<ProjectDetail>; onExplain: (key: string) => void }) {
   const { config, overview, scope, client } = usePortal();
   const location = useLocation();
   const p = env.data;
@@ -90,6 +97,10 @@ function ProjectView({ env }: { env: Envelope<ProjectDetail> }) {
         <StatusChip group={p.bridge_group} label={p.status_label} held={p.held} />
         {p.labels.status.help && <p className="muted">{p.labels.status.help}</p>}
       </div>
+
+      <button type="button" className="button button-primary chat-open" aria-haspopup="dialog" onClick={() => onExplain(projectKey(p.dataset, p.id))}>
+        Ipaliwanag ang proyektong ito
+      </button>
 
       <div className="project-grid">
         <section aria-labelledby="amounts-h">
@@ -153,11 +164,7 @@ function ProjectView({ env }: { env: Envelope<ProjectDetail> }) {
             <div>
               <dt className="label">Why it is in this portal</dt>
               <dd>
-                {inScope ? (
-                  <ReasonTags reasons={inScope.reasons} />
-                ) : (
-                  <span className="muted">It is not among this portal’s projects; it is shown because you followed a link to it.</span>
-                )}
+                {inScope && <ReasonTags reasons={inScope.reasons} />}
               </dd>
             </div>
           </dl>

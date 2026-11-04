@@ -66,7 +66,7 @@ export function Masthead() {
       </div>
       <nav className="subnav" aria-label="Sections">
         <div className="page subnav-inner">
-          {NAV.map((n) => {
+          {NAV.filter((n) => n.hash !== '#offices' || config.scope.offices?.length || config.scope.districts?.length).map((n) => {
             const active = pathname === n.to && (n.hash ? hash === n.hash : hash !== '#offices');
             return (
               <Link

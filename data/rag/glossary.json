@@ -1,0 +1,65 @@
+[
+  {
+    "id": "glossary:nep",
+    "term": "National Expenditure Program (NEP)",
+    "aliases": ["NEP", "panukalang budget", "proposed budget"],
+    "fil": "Ang National Expenditure Program o NEP ay panukalang pambansang budget na isinusumite ng Pangulo sa Kongreso. Panukala pa ito, hindi pa ang batas na budget at hindi tala ng nagastos.",
+    "en": "The National Expenditure Program (NEP) is the national budget proposed by the President to Congress. It is a proposal, not the enacted budget or a record of spending.",
+    "sources": ["https://budget.bettergov.ph/api/v1/hgab/2027", "https://budget.bettergov.ph/hgab/2027/methodology"],
+    "reviewedAt": "2026-11-01"
+  },
+  {
+    "id": "glossary:house-bill",
+    "term": "House bill",
+    "aliases": ["House bill", "House Bill 10858", "House version", "ikalawang pagbasa", "ikatlong pagbasa"],
+    "fil": "Ang House bill ay bersiyon ng panukalang budget mula sa Kapulungan ng mga Kinatawan. Sa tala para sa 2027, ito ang House Bill 10858. Ikatlong pagbasa ang gamit sa paghahambing ng DPWH; ikalawang pagbasa sa tatlong iba pang programa, na may magkaparehong listahan sa dalawang pagbasa. Hindi pa ito ang General Appropriations Act.",
+    "en": "The House bill is the House of Representatives' version of the proposed budget: House Bill 10858 in the 2027 dataset. DPWH comparisons use third reading; the other three programs use second reading, with identical lists at both readings. It is not yet the General Appropriations Act.",
+    "sources": ["https://budget.bettergov.ph/api/v1/hgab/2027", "https://budget.bettergov.ph/hgab/2027/methodology"],
+    "reviewedAt": "2026-11-01"
+  },
+  {
+    "id": "glossary:gaa",
+    "term": "General Appropriations Act (GAA)",
+    "aliases": ["GAA", "enacted budget", "batas na budget"],
+    "fil": "Ang General Appropriations Act o GAA ay batas na naglalaan ng pondong maaaring gastusin. Ang mga tala rito para sa 2020 hanggang 2026 ay mga halagang inilaan sa batas, hindi patunay ng aktuwal na paggastos. Isang pamilya ng programa ang iisang pangalan sa iisang ahensiya sa iba't ibang taon; ibang pamilya ang pinalitang pangalan.",
+    "en": "The General Appropriations Act (GAA) is the law authorizing budget appropriations. The 2020–2026 records show enacted amounts, not proof of actual spending. A program family groups the same name in the same agency across years; a renamed program is a different family.",
+    "sources": ["https://budget.bettergov.ph/api/v1/hgab/2027", "https://budget.bettergov.ph/api/v1/gaa/departments"],
+    "reviewedAt": "2026-11-01"
+  },
+  {
+    "id": "glossary:appropriation-not-spending",
+    "term": "Appropriation versus spending",
+    "aliases": ["appropriation", "spending", "nagastos", "ginastos", "pondo", "tapos na", "completion"],
+    "fil": "Ang halagang inilaan sa budget ay hindi awtomatikong halagang nagastos. Hindi ipinapakita ng tala kung tapos na ang proyekto. Ang makikita rito ay ang halagang nakalista sa dokumento ng budget. Kailangan ng hiwalay na tala para malaman ang aktuwal na paggastos o pagkumpleto.",
+    "en": "An amount appropriated in a budget is not automatically money spent. These records do not establish whether a project is complete. They show amounts listed in budget documents; actual spending and completion require separate evidence.",
+    "sources": ["https://budget.bettergov.ph/api/v1/hgab/2027", "https://budget.bettergov.ph/hgab/2027/methodology#disclaimer"],
+    "reviewedAt": "2026-11-01"
+  },
+  {
+    "id": "glossary:comparison-candidates",
+    "term": "Provisional comparison statuses",
+    "aliases": ["candidate", "insertion", "deletion", "house_only", "nep_only", "unchanged", "increased", "decreased", "scope_review", "unconfirmed match"],
+    "fil": "Ang 'House bill only' at 'NEP only' ay mga kandidatong dapat suriin, hindi kumpirmadong pagdagdag o pagtanggal. Maaaring napalitan ang pangalan o saklaw. Ang 'unconfirmed match' ay hindi pa tiyak na pagtutugma. Ang mas mataas, mas mababa, o kaparehong halaga ay paghahambing ng mga tala, hindi patunay ng iregularidad. Sa 'scope review', magkaiba ang bahaging sakop kaya hindi direktang maihahambing ang halaga.",
+    "en": "'House bill only' and 'NEP only' are candidates for review, not confirmed insertions or deletions; names or scope may have changed. An unconfirmed match is a provisional pairing. Higher, lower, or unchanged amounts compare records and do not prove wrongdoing. Scope-review records cover different stretches and are not directly comparable.",
+    "sources": ["https://budget.bettergov.ph/api/v1/hgab/2027", "https://budget.bettergov.ph/hgab/2027/methodology#disclaimer-no-allegations"],
+    "reviewedAt": "2026-11-01"
+  },
+  {
+    "id": "glossary:separate-versions-missing-zero",
+    "term": "Separate versions, missing values and zero",
+    "aliases": ["null", "zero", "wala", "kabuuan", "total", "magkano"],
+    "fil": "Magkaibang bersiyon ng iisang budget ang NEP at House bill: ihambing, huwag pagsamahin. Ang nawawalang halaga ay hindi zero at hindi patunay na walang proyekto. Sa GAA, ituring lamang na may pondong inilaan sa isang taon kapag higit sa zero ang halaga; hindi sapat ang bilang ng mga linyang may pangalan. Panatilihing magkahiwalay ang mga taon.",
+    "en": "NEP and House amounts are versions of one budget: compare them, never add them. A missing amount is not zero or proof that no project exists. A GAA year counts as funded only when its amount is above zero, not merely because a line count is present. Keep fiscal years separate.",
+    "sources": ["https://budget.bettergov.ph/api/v1/hgab/2027", "https://budget.bettergov.ph/api/v1/gaa/departments"],
+    "reviewedAt": "2026-11-01"
+  },
+  {
+    "id": "glossary:antipolo-coverage",
+    "term": "Antipolo coverage",
+    "aliases": ["Antipolo", "city budget", "budget ng Antipolo", "saklaw", "coverage"],
+    "fil": "Mga pambansang tala ng budget na tumutugma sa paghahanap na 'Antipolo City' ang saklaw nito, hindi ang buong budget ng Antipolo City Hall. Sa 2027, pinananatili ang Region IV-A at mga talang walang rehiyon. Walang filter ng rehiyon ang GAA. Paghahanap ito batay sa pangalan, hindi kumpletong pagsusuri ng lahat ng proyektong pisikal na nasa lungsod.",
+    "en": "Coverage is national budget records matching the search 'Antipolo City', not the complete Antipolo City Hall budget. The 2027 scope keeps Region IV-A and records without a region. GAA has no region filter. This is a name-based search, not a survey of every project physically in the city.",
+    "sources": ["https://budget.bettergov.ph/api/v1/hgab/2027", "https://budget.bettergov.ph/api/v1/gaa/departments"],
+    "reviewedAt": "2026-11-01"
+  }
+]
