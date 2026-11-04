@@ -9,6 +9,6 @@
   "routes": [
     { "handle": "filesystem" },
     { "src": "/api(?:/.*)?", "status": 404 },
-    { "src": "/.*", "dest": "/index.html" }
+    { "src": "/((?!@|src/|node_modules/)[^.]*)", "dest": "/index.html" }
   ]
 }

@@ -169,9 +169,13 @@ All amounts, counts, rankings, and differences are computed in TypeScript:
 - Preserve exclusions, provisional labels, and unconfirmed-match notes.
 - Label totals as this portal's matching records, not the city's complete budget.
 
-For “Magkano ang budget ng Antipolo?”, clarify the year, version, and coverage.
-If the intended filter cannot be resolved reliably, do not ask Gemini to guess or
-perform the calculation. Return a clarification or a link to the filtered list.
+For “Magkano ang budget ng Antipolo?”, show the current dashboard's FY2027 NEP and
+House totals separately, explicitly naming the year and explaining that this is
+not the complete City Hall budget. “Ilang project sa Antipolo?” returns the unique
+scoped project count for that dashboard year. These summaries refresh the scoped
+Budget API data server-side; failures retain a clearly dated snapshot answer.
+Explicit historical or ambiguous filters still clarify rather than guessing.
+Gemini never supplies the arithmetic or arbitrary API URLs.
 
 ## 7. Answer and citation standard
 

@@ -125,9 +125,9 @@
     },
     {
       "id": "A01", "category": "ambiguous",
-      "request": { "message": "Magkano ang budget ng Antipolo?" },
+      "request": { "message": "Magkano ang budget GAA?" },
       "expected": { "mode": "clarification", "records": [], "evidence": [], "facts": [] },
-      "review": "Ask for project/year/version/coverage; do not invent a complete city budget."
+      "review": "Ask which enacted fiscal year; do not add all GAA years or invent a complete city budget. Broad current-dashboard questions are covered by the count/budget regression checks."
     },
     {
       "id": "A02", "category": "ambiguous",

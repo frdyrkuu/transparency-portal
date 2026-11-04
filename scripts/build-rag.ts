@@ -57,7 +57,7 @@ export function antipoloScope(portal: PortalConfig) {
   return { offices: [], districts: [], places: [{ label: place.label, q: place.q ?? place.label, region: place.region, datasets: [...DATASET_KEYS] }], exclude };
 }
 
-function validateProject(row: ProjectRow, dataset: string, base: string) {
+export function validateProject(row: ProjectRow, dataset: string, base: string) {
   assert.ok(row && text(row.id) && text(row.title), 'Malformed project ID/title');
   assert.equal(row.dataset, dataset, 'Project returned in the wrong dataset');
   for (const field of ['program', 'pap', 'region', 'region_key', 'office', 'office_kind', 'zone'] as const) {

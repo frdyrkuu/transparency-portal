@@ -52,7 +52,7 @@ export interface Client {
 
 const ROOT = '/api/v1/hgab/2027';
 
-export function createClient(base: string): Client {
+export function createClient(base: string, send: typeof fetch = fetch): Client {
   const host = base.replace(/\/+$/, '');
   const cache = new Map<string, Promise<unknown>>();
 
@@ -69,7 +69,7 @@ export function createClient(base: string): Client {
     let hit = cache.get(url) as Promise<T> | undefined;
     if (!hit) {
       hit = (async () => {
-        const res = await fetch(url, { headers: { accept: 'application/json' } });
+        const res = await send(url, { headers: { accept: 'application/json' } });
         if (!res.ok) {
           let message = `${res.status} ${res.statusText}`;
           try {

@@ -16,7 +16,7 @@ const settings = { CHAT_ENABLED: 'true', GEMINI_MODEL: 'verified-test-model', GE
 const answer = 'Ang tala ay tungkol sa nakalistang proyekto sa Antipolo. Tingnan ang magkakahiwalay na halaga at bersiyon sa mga fact card. Hindi ito patunay na nagastos na ang pondo.';
 const noFetch: typeof fetch = async () => { throw new Error('Unexpected provider call'); };
 const logs: ChatLog[] = [];
-const defaults: ChatOptions = { settings, send: noFetch, log: (event) => logs.push(event) };
+const defaults: ChatOptions = { settings, send: noFetch, lookup: retrieve, log: (event) => logs.push(event) };
 
 function post(body: unknown, headers: HeadersInit = {}) {
   return new Request('https://portal.test/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json', ...headers }, body: JSON.stringify(body) });
@@ -110,7 +110,7 @@ test('malformed, ungrounded, incomplete and unsafe output falls back without ano
     assert.equal(response.status, 200);
     assert.equal(body.mode, 'reference');
     assert.equal(body.aiUnavailable, true);
-    assert.match(body.answer, /Hindi muna available/);
+    assert.equal(body.answer, (await retrieve(explanation)).answer);
     assert.ok(body.facts.length && body.sources.length);
     assert.equal(logs.at(-1)?.category, 'invalid_output');
   });
@@ -138,7 +138,7 @@ test('provider quota, errors, bad JSON and timeout keep reference evidence and n
   ]) {
     const { body } = await call({ ...explanation, language: 'en' }, { send });
     assert.equal(body.mode, 'reference');
-    assert.match(body.answer, /AI explanations are currently unavailable/);
+    assert.equal(body.answer, (await retrieve({ ...explanation, language: 'en' })).answer);
   }
   const timeout = AbortSignal.timeout.bind(AbortSignal);
   t.mock.method(AbortSignal, 'timeout', (ms: number) => { assert.equal(ms, 20_000); return timeout(5); });
@@ -177,6 +177,8 @@ test('definitions, facts, limitations, out-of-scope and unknown/excluded context
   for (const request of [
     { message: 'Ano ang NEP?' }, { message: 'What is GAA?', language: 'en' as const },
     { message: 'Total NEP FY2027' }, { message: 'Magkano ang budget ng Antipolo?' },
+    { message: 'ano ang pinaka mataas na budget na lugar sa antipolo at ano ang proyektong ito?' },
+    { message: 'Anong proyekto ang may pinakamataas na budget sa Antipolo 2027 House?' },
     { message: 'Tapos na ba ito?', context: { projectKey } },
     { message: 'List roads sa Manila' }, { message: 'Ipaliwanag ang Cebu City' },
     ...['dpwh:forged', snapshot.manifest.scope.exclude[0].key].map((key) => ({ ...explanation, context: { projectKey: key } })),
@@ -349,7 +351,15 @@ test('Vercel checks files/functions before SPA fallback, returns API 404, and in
   assert.equal(missing.status, 404);
   for (const path of ['/api', '/api/chat', '/api/missing', '/api/chat/extra']) assert.match(path, new RegExp(`^(?:${missing.src})$`));
   for (const path of ['/', '/projects/dpwh/1', '/about', '/api-help']) assert.doesNotMatch(path, new RegExp(`^(?:${missing.src})$`));
-  assert.deepEqual(config.routes[2], { src: '/.*', dest: '/index.html' });
+  const fallback = config.routes[2];
+  assert.equal(fallback.dest, '/index.html');
+  const pageRoute = new RegExp(`^(?:${fallback.src})$`);
+  // ponytail: portal page paths are extensionless; add an explicit route if a future page needs dots.
+  for (const path of ['/', '/gaa', '/about', '/districts', '/projects/dpwh/house-reading:4279', '/unknown-page']) assert.match(path, pageRoute);
+  for (const path of ['/src/main.tsx', '/src/styles/app.css', '/portal.config.ts', '/@vite/client', '/@react-refresh',
+    '/@id/virtual:module', '/@fs/D:/www/module.ts', '/node_modules/.vite/deps/react.js', '/assets/index.js', '/favicon.svg']) {
+    assert.doesNotMatch(path, pageRoute, `${path} must reach Vite/static serving, not the HTML fallback`);
+  }
   assert.equal(config.functions['api/chat.ts'].includeFiles, 'data/rag/antipolo.json');
   assert.ok(config.functions['api/chat.ts'].maxDuration > 20);
   assert.deepEqual(await readdir(new URL('../api/', import.meta.url)), ['chat.ts']);

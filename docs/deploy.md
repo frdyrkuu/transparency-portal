@@ -74,8 +74,22 @@ in ignored `.env.local`, copied from `.env.example`, with `CHAT_ENABLED=false`.
 Use `http://localhost:3000` for both the portal and `/api/chat`. The CLI may prompt
 for account/project setup. It runs Vite behind the local API/router; `npm run dev`
 alone is the frontend-only workflow and does not run this Function or the WAF.
+Current FY2027 count/budget questions fetch the same four scoped project lists as
+the dashboard, with pagination, region rules, exclusions and an eight-second
+deadline. Gemini does not calculate these totals. A failed or invalid refresh uses
+the reviewed snapshot with a visible notice and its original collection date.
 `npm run test:chat` provides credential-free API, provider-failure and build-gate
 checks; `npm run test:chat-ui` provides offline browser checks.
+
+With `vercel dev` running, `npx tsx scripts/check-vercel-dev.ts` checks the actual
+local router, Vite modules, SPA deep links, API 404/405 handling, and a reference
+chat answer in Chromium. The glossary question needs no Gemini call. Pass a local
+URL as an argument if you chose another port.
+
+The SPA fallback covers extensionless page paths and excludes Vite's `/@…`,
+`/src/`, and `/node_modules/` paths. Keep file/module requests out of that fallback:
+rewriting them to `/index.html` makes `vercel dev` serve HTML as JavaScript and
+causes Vite import-analysis errors. Unknown API paths retain their separate 404.
 
 For a real local generation, first finish [Phase 0 setup](ai-setup.md), then enable
 AI locally and run `npm run chat:check -- --live` for one explicit connectivity

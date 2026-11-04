@@ -25,22 +25,29 @@ export interface Fact {
   value: number | null;
   unit: 'PHP' | 'records' | 'families';
   year: number;
-  stage: Stage | 'house-minus-nep';
+  stage: Stage | 'house-minus-nep' | 'all';
   sourceIds: string[];
   /** A partial sum has missingCount > 0; an entirely missing sum is null. */
   availableCount: number;
   missingCount: number;
   recordKey?: string;
 }
+export interface ChatRecord {
+  key: string;
+  title: string;
+  department: string;
+  amounts: { year: number; stage: Stage; value: number | null }[];
+}
 export interface ChatResponse {
   mode: 'ai' | 'reference' | 'clarification' | 'no_data';
   answer: string;
   facts: Fact[];
+  records: ChatRecord[];
   sources: Source[];
   citationIds: string[];
   factIds: string[];
   aiUnavailable?: true;
-  snapshot: { id: string; collectedAt: string; stale: boolean; notice: string };
+  snapshot: { id: string; collectedAt: string; stale: boolean; notice: string; live?: true };
   provenance: {
     snapshotId: string;
     filter: { year: number | null; stages: Stage[]; program: string | null; projectKey: string | null; keywords: string[] };

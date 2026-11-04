@@ -370,8 +370,7 @@ test('ambiguous names, years, versions and program filters clarify without guess
   const data = await retrievalFixture(t);
   for (const request of [
     { message: 'Ipaliwanag ang kalsada Mayamot 2027' },
-    { message: 'Magkano ang budget ng Antipolo?' },
-    { message: 'Magkano ang dpwh:bridge?' },
+    { message: 'Magkano ang budget GAA?' },
     { message: 'Total GAA roads Mayamot' },
     { message: 'List road Mayamot' },
     { message: 'Total road Mayamot 2020 2021' },
@@ -425,6 +424,145 @@ test('full-set aggregates exceed six records, preserve missing versus zero, and 
     assert.ok(result.allowedFactIds.includes(fact.id));
     assert.ok(fact.sourceIds.every((id) => result.allowedSourceIds.includes(id) && result.sources.some((s) => s.id === id)));
   }
+});
+
+test('highest-budget questions clarify missing scope and rank the complete set without mixing versions', async (t) => {
+  const data = await retrievalFixture(t, (api) => {
+    api.projects.dpwh.data.rows.find((p) => p.id === 'road-6')!.house_php = 207;
+    api.projects.dpwh.data.rows.find((p) => p.id === 'road-6')!.hgab3_php = 207;
+  });
+  for (const message of [
+    'ano ang pinaka mataas na budget na lugar sa antipolo at ano ang proyektong ito?',
+    'Anong proyekto ang may pinakamataas na budget sa Antipolo?',
+    'Highest budget project in Antipolo 2027',
+    'Highest budget project in Antipolo 2027 NEP and House',
+    'Which barangay has the highest budget in Antipolo 2027 House?',
+    'Highest budget dpwh:road-0 2027 House',
+  ]) {
+    for (const language of ['fil', 'en'] as const) {
+      const result = await retrieve({ message, language }, data);
+      assert.equal(result.mode, 'clarification', message);
+      assert.equal(result.facts.length, 0);
+      assert.equal(result.needsExplanation, false);
+      assert.match(result.answer, /NEP|House|GAA|project ID/);
+    }
+  }
+  for (const message of ['Anong kalsada sa Mayamot ang may pinakamataas na budget sa 2027 House?', 'Highest budget of all roads in Mayamot 2027 House']) {
+    const result = await retrieve({ message }, data);
+    assert.equal(result.mode, 'reference', message);
+    assert.equal(result.provenance.matchedCount, 8, 'Compare all matches, including those beyond the evidence cap');
+    assert.deepEqual(result.evidence.filter((e) => e.kind === 'project').map((e) => e.key), ['dpwh:road-6', 'dpwh:road-7']);
+    for (const key of ['dpwh:road-6', 'dpwh:road-7']) assert.ok(result.answer.includes(data.projects.projects.find((p) => p.key === key)!.title));
+    assert.ok(result.facts.filter((f) => f.kind === 'amount').every((f) => f.value === 207));
+    assert.ok(result.facts.every((f) => f.stage === 'house'), 'No combined versions or aggregate total');
+    assert.ok(result.sources.some((s) => s.recordKey === 'dpwh:road-0'), 'Keep the full comparison pool traceable');
+    assert.equal(result.needsExplanation, false);
+  }
+  const nep = await retrieve({ message: 'Pinaka malaking budget kalsada Mayamot 2027 NEP' }, data);
+  assert.equal(amount(nep, 'nep')?.value, 107);
+  assert.equal(amount(nep, 'nep')?.recordKey, 'dpwh:road-7');
+  const gaa = await retrieve({ message: 'Highest budget project GAA 2020' }, data);
+  assert.equal(amount(gaa, 'gaa', 2020)?.value, 900);
+  for (const message of ['Highest budget project GAA 2021', 'Highest budget Missing 2027 NEP']) {
+    const result = await retrieve({ message }, data);
+    assert.equal(result.mode, 'no_data');
+    assert.equal(result.facts.length, 0);
+  }
+  const outside = await retrieve({ message: 'Highest budget project in Cebu City 2027 House' }, data);
+  assert.equal(outside.evidence[0]?.key, 'glossary:antipolo-coverage');
+  const zeroes = await retrievalFixture(t, (api) => {
+    for (const p of api.projects.dpwh.data.rows) p.nep_php = 0;
+  });
+  const tiedZeroes = await retrieve({ message: 'Highest budget roads Mayamot 2027 NEP' }, zeroes);
+  assert.equal(tiedZeroes.mode, 'reference', 'A listed project zero is not a missing amount');
+  assert.equal(tiedZeroes.provenance.matchedCount, 8);
+  assert.equal(tiedZeroes.evidence.length, 6, 'Ties still obey the evidence cap');
+  assert.ok(tiedZeroes.facts.filter((f) => f.kind === 'amount').every((f) => f.value === 0));
+});
+
+test('plain dashboard questions and reviewed typos return useful counts and separate budget totals', async (t) => {
+  const data = await retrievalFixture(t);
+  for (const message of ['ilang project sa antipolo', '2027 projects sa antipolo kabuuhan', '2027 projects sa antipolo kabuhuan', 'How many projects are in Antipolo?', 'Ano ang kabuuang proyekto sa Antipolo?']) {
+    const result = await retrieve({ message }, data);
+    assert.equal(result.mode, 'reference', message);
+    assert.equal(result.refreshProjects, true);
+    assert.equal(result.provenance.filter.year, 2027, 'State the dashboard year rather than silently mixing all years');
+    assert.equal(result.facts.length, 1);
+    assert.equal(result.facts[0].stage, 'all');
+    assert.equal(result.facts[0].value, data.projects.projects.length);
+    assert.match(result.answer, new RegExp(`May ${data.projects.projects.length} proyektong nakalista`));
+    assert.ok(result.sources.length <= 4 && result.sources.every((s) => s.url.includes('q=Antipolo')));
+  }
+  for (const message of ['magkano budget ng antipolo?', 'ilan budget sa antipolo', 'How much is the budget for Antipolo?']) {
+    const result = await retrieve({ message }, data);
+    assert.equal(result.mode, 'reference', message);
+    const rows = data.projects.projects;
+    assert.equal(amount(result, 'nep')?.value, rows.reduce((sum, row) => sum + (row.nep_php ?? 0), 0));
+    assert.equal(amount(result, 'house')?.value, rows.reduce((sum, row) => sum + (row.house_php ?? 0), 0));
+    assert.match(result.answer, /Panukala ng Pangulo.*₱/);
+    assert.match(result.answer, /Panukala ng Kamara.*₱/);
+    assert.match(result.answer, /hindi.*buong budget ng City Hall/);
+    assert.equal(result.needsExplanation, false, 'Figures do not need Gemini');
+  }
+  const roads = await retrieve({ message: 'Ilang proyekto sa kalsada Mayamot?' }, data);
+  assert.equal(roads.facts[0].value, 8, 'Count the full set, not just the first six explanations');
+  const absent = await retrieve({ message: 'Ilang proyekto sa Zzznomatch?' }, data);
+  assert.equal(absent.mode, 'reference');
+  assert.equal(absent.facts[0].value, 0);
+  const stage = await retrieve({ message: 'Ilang project sa NEP 2027?' }, data);
+  assert.equal(stage.facts[0].value, data.projects.projects.filter((row) => row.nep_php !== null).length);
+  assert.equal(stage.facts[0].stage, 'nep');
+  const other = await retrieve({ message: 'Ilang proyekto sa Cebu City?' }, data);
+  assert.equal(other.refreshProjects, false);
+  assert.equal(other.evidence[0]?.key, 'glossary:antipolo-coverage');
+  const city = await retrieve({ message: 'Magkano budget ng Antipolo City Hall?' }, data);
+  assert.equal(city.refreshProjects, false);
+  assert.equal(city.facts.length, 0);
+});
+
+test('conversational summary requests answer with available data and a natural respectful tone', async (t) => {
+  const data = await retrievalFixture(t);
+  for (const message of [
+    'bigyan mo ako ng buod ng budget ng antipolo',
+    'pwede bang makahingi ng summary ng budget sa Antipolo',
+    'Please give me a detailed overview of the Antipolo budget',
+    'ibuod ang budget ng Antipolo 2027',
+  ]) {
+    const result = await retrieve({ message, context: { projectKey: 'dpwh:road-0' } }, data);
+    assert.equal(result.mode, 'reference', message);
+    assert.equal(result.provenance.filter.year, 2027);
+    assert.equal(result.provenance.filter.projectKey, null);
+    assert.equal(result.facts.find((fact) => fact.stage === 'all')?.value, data.projects.projects.length);
+    assert.equal(amount(result, 'house')?.value, summarise(data.projects.projects).house.php);
+    assert.match(result.answer, /2027|City Hall/);
+    assert.doesNotMatch(result.answer, /^Opo\.|tanong mo|project ID|API|JSON/);
+  }
+});
+
+test('a project amount question without a version shows both available proposals instead of withholding the answer', async (t) => {
+  const data = await retrievalFixture(t);
+  for (const request of [{ message: 'Magkano ang dpwh:bridge?' }, { message: 'Magkano?', context: { projectKey: 'dpwh:bridge' } }]) {
+    const result = await retrieve(request, data);
+    assert.equal(result.mode, 'reference');
+    assert.equal(amount(result, 'nep')?.value, 100);
+    assert.equal(amount(result, 'house')?.value, 300);
+    assert.equal(result.records.length, 1);
+    assert.deepEqual(result.records[0].amounts, [{ year: 2027, stage: 'nep', value: 100 }, { year: 2027, stage: 'house', value: 300 }]);
+  }
+});
+
+test('GAA matches are returned as readable project data with correct yearly amounts', async (t) => {
+  const data = await retrievalFixture(t, (api) => {
+    api.programs['18'].data.push(family('Concreting of Road, Barangay Sta. Cruz', 7654321));
+    api.programs['18'].meta.matched = api.programs['18'].data.length;
+  });
+  const result = await retrieve({ message: 'Mga proyekto sa Barangay Santa Cruz GAA 2020' }, data);
+  assert.equal(result.mode, 'reference');
+  assert.equal(result.records.length, 1);
+  assert.match(result.records[0].title, /Concreting of Road, Barangay Sta\. Cruz/);
+  assert.equal(result.records[0].department, 'Department of Public Works and Highways (DPWH)');
+  assert.deepEqual(result.records[0].amounts, [{ year: 2020, stage: 'gaa', value: 7654321 }]);
+  assert.ok(result.sources.length > 0, 'Keep evidence for auditing while the frontend renders the data');
 });
 
 test('GAA zero-year carry-forwards are not funded; years and sources remain separate', async (t) => {

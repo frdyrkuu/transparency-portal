@@ -18,11 +18,6 @@ export default function App() {
     <>
       <ScrollToTop />
       <Masthead />
-      <div className="page chat-entry">
-        <button type="button" className="button button-primary chat-open" aria-haspopup="dialog" onClick={() => chat.current?.open()}>
-          Magtanong tungkol sa budget
-        </button>
-      </div>
       {problems.length > 0 && (
         <div className="page config-warning" role="alert">
           <strong>portal.config.ts needs attention</strong> (shown in development only):
@@ -46,6 +41,13 @@ export default function App() {
         />
       </Routes>
       <Footer />
+      <button type="button" className="button button-primary chat-open chat-launcher" aria-haspopup="dialog" aria-controls="budget-chat" onClick={() => chat.current?.open()}>
+        <svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <path d="M20 11.5a8.5 8.5 0 0 1-8.5 8.5H4l-1 1v-9.5A8.5 8.5 0 0 1 11.5 3h0a8.5 8.5 0 0 1 8.5 8.5Z" />
+          <path d="M7 9h9M7 13h6" />
+        </svg>
+        <span>Magtanong tungkol sa budget</span>
+      </button>
       <ChatPanel ref={chat} />
     </>
   );

@@ -228,6 +228,22 @@ const total = await retrieve({
   glossary text. Unsupported years and absent records return `no_data`. Multi-year
   aggregation asks for one fiscal year; an individual GAA family can display all
   seven years as separate facts.
+- Highest-budget questions (`pinakamataas`, `pinaka mataas`, `pinakamalaki`,
+  `highest`, `largest`) require one explicit year and version. They compare the
+  complete matching set, retain ties, and return official project/family titles
+  with server-built amount cards. Missing amounts and unfunded GAA carry-forwards
+  cannot win; NEP and House remain separate. Ranking by place/barangay asks for
+  clarification because the snapshot does not contain complete geographic totals.
+  Example: `Anong proyekto ang may pinakamataas na budget sa Antipolo 2027 House?`
+- Plain dashboard questions such as `ilang project sa antipolo`, `2027 projects sa
+  antipolo kabuuhan`, and `magkano budget ng antipolo` now return a direct summary.
+  They explicitly use the dashboard's FY2027 when no year is given; NEP and House
+  amounts are shown separately with everyday labels. The shared retriever corrects
+  reviewed spelling variants only, never fuzzy project IDs or place names.
+  `server/budget-api.ts` refreshes eligible FY2027 summaries from the existing
+  scoped API resolver, validates complete/consistent results, and retains dated
+  snapshot answers on API failure. Historical/GAA questions still use the bundled
+  evidence and ask for a year when needed. The UI never renders internal hashes.
 
 Verification: **36 `npm run test:rag` checks**, `npm run build`, and `npm run lint`
 passed. The new checks exercise real-snapshot totals and isolated offline fixtures

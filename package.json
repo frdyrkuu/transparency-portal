@@ -13,7 +13,7 @@
     "test:chat-setup": "tsx scripts/check-gemini.ts --self-test",
     "rag:build": "tsx scripts/build-rag.ts",
     "test:rag": "tsx --test tests/rag.test.ts",
-    "test:chat": "tsx --test tests/chat.test.ts",
+    "test:chat": "tsx --test tests/chat.test.ts tests/budget-api.test.ts",
     "test:evaluation": "tsx --test tests/chat-evaluation.test.ts",
     "test:chat-ui": "tsx scripts/check-chat-ui.ts",
     "build": "tsc -b && vite build",
